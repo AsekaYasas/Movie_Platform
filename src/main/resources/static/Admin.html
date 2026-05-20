@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cineflix — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:          #07050f;
+            --surface:     #100d1e;
+            --card:        #14112a;
+            --card2:       #1a1632;
+            --purple1:     #a78bfa;
+            --purple2:     #7c3aed;
+            --purple3:     #4c1d95;
+            --purple-glow: rgba(124,58,237,0.35);
+            --purple-soft: rgba(167,139,250,0.08);
+            --text:        #f0ecff;
+            --text-sub:    #9d93be;
+            --text-dim:    #4a4169;
+            --border:      rgba(167,139,250,0.12);
+            --border-h:    rgba(167,139,250,0.28);
+            --danger:      #f87171;
+            --danger-glow: rgba(248,113,113,0.25);
+            --success:     #4ade80;
+            --success-glow:rgba(74,222,128,0.2);
+            --warn:        #fbbf24;
+            --sidebar-w:   240px;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .aurora { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .aurora-blob {
+            position: absolute; border-radius: 50%;
+            filter: blur(100px); opacity: 0.13;
+            animation: drift 14s ease-in-out infinite alternate;
+        }
+        .ab1 { width:650px;height:650px;background:#7c3aed;top:-200px;left:-150px;animation-delay:0s; }
+        .ab2 { width:500px;height:500px;background:#4f46e5;bottom:-150px;right:-100px;animation-delay:-5s; }
+        .ab3 { width:280px;height:280px;background:#a78bfa;top:40%;left:55%;animation-delay:-10s; }
+        @keyframes drift {
+            from { transform: translate(0,0) scale(1); }
+            to   { transform: translate(25px,18px) scale(1.07); }
+        }
+
+        .grid-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image:
+                    linear-gradient(rgba(167,139,250,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(167,139,250,0.03) 1px, transparent 1px);
+            background-size: 52px 52px;
+        }
+
+        .shell { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: var(--sidebar-w); flex-shrink: 0;
+            background: rgba(16,13,30,0.85);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; bottom: 0;
+            backdrop-filter: blur(20px);
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            padding: 28px 24px 20px;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.6rem; letter-spacing: 3px;
+            color: var(--text); border-bottom: 1px solid var(--border);
+        }
+        .sidebar-logo span { color: var(--purple1); }
+        .sidebar-badge {
+            display: inline-block; margin-left: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.55rem; font-weight: 700; letter-spacing: 2px;
+            background: linear-gradient(135deg, var(--purple2), #5b21b6);
+            color: #fff; padding: 2px 7px; border-radius: 4px;
+            vertical-align: middle; text-transform: uppercase;
+        }
+
+        .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+
+        .nav-section-label {
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--text-dim);
+            padding: 12px 12px 6px;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 14px; border-radius: 11px; cursor: pointer;
+            font-size: 0.88rem; font-weight: 500; color: var(--text-sub);
+            transition: all 0.22s ease; border: 1px solid transparent;
+            user-select: none;
+        }
+        .nav-item:hover { color: var(--text); background: var(--purple-soft); border-color: var(--border); }
+        .nav-item.active {
+            color: var(--text);
+            background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(91,33,182,0.15));
+            border-color: rgba(167,139,250,0.2);
+            box-shadow: inset 0 1px 0 rgba(167,139,250,0.1);
+        }
+        .nav-item .ni-icon { font-size: 1.1rem; width: 22px; display:flex; align-items:center; justify-content:center; flex-shrink: 0; color: inherit; }
+        .nav-item .ni-badge {
+            margin-left: auto; font-size: 0.68rem; font-weight: 700;
+            background: var(--purple2); color: #fff;
+            padding: 1px 7px; border-radius: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 16px 12px;
+            border-top: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 6px;
+        }
+
+        .sidebar-user {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 11px;
+            background: var(--purple-soft); border: 1px solid var(--border);
+        }
+        .su-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--purple2), #5b21b6);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; font-weight: 700; color: #fff; flex-shrink: 0;
+        }
+        .su-info { flex: 1; min-width: 0; }
+        .su-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+        .su-role { font-size: 0.68rem; color: var(--purple1); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+        .btn-home, .btn-logout {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px; border-radius: 10px;
+            font-family: 'Outfit', sans-serif; font-size: 0.82rem; font-weight: 600;
+            cursor: pointer; border: 1px solid var(--border); transition: all 0.22s;
+            text-decoration: none;
+        }
+        .btn-home {
+            background: linear-gradient(135deg, var(--purple2), #5b21b6);
+            border-color: transparent; color: #fff;
+            box-shadow: 0 4px 16px var(--purple-glow);
+        }
+        .btn-home:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.5); }
+        .btn-logout { background: transparent; color: var(--text-sub); }
+        .btn-logout:hover { color: var(--danger); border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.06); }
+
+        .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+        .topbar {
+            height: 64px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 32px;
+            background: rgba(7,5,15,0.7); backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+        .topbar-title span { color: var(--text-sub); font-weight: 400; font-size: 0.82rem; margin-left: 8px; }
+
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+        .search-bar {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(167,139,250,0.06); border: 1px solid var(--border);
+            border-radius: 10px; padding: 8px 14px;
+        }
+        .search-bar input {
+            background: none; border: none; outline: none;
+            font-family: 'Outfit', sans-serif; font-size: 0.85rem;
+            color: var(--text); width: 200px;
+        }
+        .search-bar input::placeholder { color: var(--text-dim); }
+
+        .content { flex: 1; padding: 32px; display: flex; flex-direction: column; gap: 28px; }
+
+        .panel { display: none; flex-direction: column; gap: 24px; animation: fadeIn 0.3s ease; }
+        .panel.active { display: flex; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+        .page-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .page-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 2px; color: var(--text); }
+        .page-title span { color: var(--purple1); }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px; padding: 22px;
+            position: relative; overflow: hidden;
+            transition: border-color 0.25s, transform 0.25s;
+        }
+        .stat-card:hover { border-color: var(--border-h); transform: translateY(-2px); }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(167,139,250,0.25), transparent);
+        }
+        .stat-icon { font-size: 1.5rem; margin-bottom: 12px; display:flex; align-items:center; color: var(--purple1); }
+        .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 2px; line-height: 1; color: var(--text); }
+        .stat-label { font-size: 0.75rem; font-weight: 600; color: var(--text-sub); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+        .table-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
+        .table-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px; border-bottom: 1px solid var(--border);
+        }
+        .table-head-title { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+        .table-head-title span { color: var(--text-sub); font-weight: 400; font-size: 0.8rem; margin-left: 6px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            padding: 12px 24px; text-align: left;
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--text-dim);
+            background: rgba(167,139,250,0.03);
+            border-bottom: 1px solid var(--border);
+        }
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.18s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(167,139,250,0.04); }
+        tbody td { padding: 14px 24px; font-size: 0.85rem; color: var(--text-sub); vertical-align: middle; }
+        tbody td:first-child { color: var(--text); font-weight: 500; }
+
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+        .badge-admin { background: rgba(167,139,250,0.15); color: var(--purple1); border: 1px solid rgba(167,139,250,0.25); }
+        .badge-user  { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.2); }
+        .badge-super { background: rgba(220,38,38,0.15); color: #f87171; border: 1px solid rgba(220,38,38,0.25); }
+
+        .action-btn {
+            background: none; border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text-sub); padding: 5px 12px; font-family:'Outfit',sans-serif;
+            font-size: 0.75rem; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .action-btn:hover { border-color: var(--border-h); color: var(--text); }
+        .action-btn.danger:hover { border-color: rgba(248,113,113,0.4); color: var(--danger); background: rgba(248,113,113,0.06); }
+
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--purple2), #5b21b6);
+            border: none; border-radius: 11px;
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-weight: 700; font-size: 0.85rem; padding: 11px 20px;
+            cursor: pointer; transition: all 0.25s;
+            box-shadow: 0 4px 16px var(--purple-glow);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,58,237,0.5); }
+
+        .overlay {
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(7,5,15,0.75);
+            backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.28s ease;
+            overflow-y: auto;
+            padding: 24px 0;
+        }
+        .overlay.open { opacity: 1; pointer-events: all; }
+
+        .glass-modal {
+            background: rgba(20,17,42,0.65);
+            border: 1px solid rgba(167,139,250,0.22);
+            border-radius: 24px; padding: 36px;
+            width: 100%; max-width: 500px;
+            box-shadow:
+                    0 0 0 1px rgba(167,139,250,0.07),
+                    0 40px 80px rgba(0,0,0,0.6),
+                    inset 0 1px 0 rgba(167,139,250,0.15);
+            backdrop-filter: blur(30px) saturate(160%);
+            transform: scale(0.94) translateY(10px);
+            transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+            position: relative; overflow: hidden;
+            margin: auto;
+        }
+        .overlay.open .glass-modal { transform: scale(1) translateY(0); }
+        .glass-modal::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 180px; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--purple1), transparent);
+        }
+
+        .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+        .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 2px; }
+        .modal-close {
+            background: rgba(167,139,250,0.08); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-sub); cursor: pointer;
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; transition: all 0.2s;
+        }
+        .modal-close:hover { color: var(--text); border-color: var(--border-h); }
+
+        .mform { display: flex; flex-direction: column; gap: 16px; }
+        .mform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .mform-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .mform-group { display: flex; flex-direction: column; gap: 7px; }
+        .mform-group label {
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--text-sub);
+        }
+        .mform-group input, .mform-group select, .mform-group textarea {
+            width: 100%; background: rgba(167,139,250,0.06);
+            border: 1px solid var(--border); border-radius: 10px;
+            color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.88rem;
+            padding: 11px 14px; outline: none; transition: all 0.22s;
+            resize: vertical;
+        }
+        .mform-group input:focus, .mform-group select:focus, .mform-group textarea:focus {
+            border-color: var(--purple1); background: rgba(167,139,250,0.09);
+            box-shadow: 0 0 0 3px rgba(167,139,250,0.13);
+        }
+        .mform-group input::placeholder, .mform-group textarea::placeholder { color: var(--text-dim); }
+        .mform-group select option { background: var(--card); color: var(--text); }
+
+        .char-hint {
+            font-size: 0.65rem; color: var(--text-dim);
+            text-align: right; margin-top: -4px;
+        }
+
+        .mform-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+        .confirm-icon { text-align: center; margin-bottom: 12px; display:flex; justify-content:center; }
+        .confirm-msg { text-align: center; color: var(--text-sub); font-size: 0.88rem; line-height: 1.7; margin-bottom: 24px; }
+        .confirm-msg strong { color: var(--text); }
+
+        #toast {
+            position: fixed; bottom: 28px; right: 28px; z-index: 999;
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 20px; border-radius: 14px; min-width: 220px;
+            font-size: 0.85rem; font-weight: 600;
+            background: rgba(20,17,42,0.9); border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: translateY(20px); opacity: 0;
+            transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+            pointer-events: none;
+        }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        #toast.success { border-color: rgba(74,222,128,0.3); }
+        #toast.error   { border-color: rgba(248,113,113,0.3); }
+
+        .empty-state { text-align: center; padding: 48px; color: var(--text-dim); }
+        .empty-state .es-icon { font-size: 2.5rem; margin-bottom: 12px; color: var(--text-dim); display:flex; justify-content:center; }
+        .empty-state p { font-size: 0.85rem; }
+
+        .spinner {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: 3px solid rgba(167,139,250,0.15);
+            border-top-color: var(--purple1);
+            animation: spin 0.8s linear infinite;
+            margin: 32px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(167,139,250,0.35); }
+
+        .cat-dropdown-wrap { position: relative; }
+        .cat-search-input {
+            width: 100%; background: rgba(167,139,250,0.06);
+            border: 1px solid var(--border); border-radius: 10px;
+            color: var(--text); font-family: 'Outfit', sans-serif; font-size: 0.88rem;
+            padding: 11px 36px 11px 14px; outline: none; transition: all 0.22s;
+            cursor: pointer;
+        }
+        .cat-search-input:focus { border-color: var(--purple1); background: rgba(167,139,250,0.09); box-shadow: 0 0 0 3px rgba(167,139,250,0.13); }
+        .cat-search-input::placeholder { color: var(--text-dim); }
+        .cat-arrow {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--text-dim); pointer-events: none; font-size: 0.7rem; transition: transform 0.2s;
+        }
+        .cat-dropdown-wrap.open .cat-arrow { transform: translateY(-50%) rotate(180deg); }
+        .cat-list {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 300;
+            background: rgba(20,17,42,0.97); border: 1px solid rgba(167,139,250,0.25);
+            border-radius: 12px; overflow: hidden;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            display: none; max-height: 200px; overflow-y: auto;
+        }
+        .cat-dropdown-wrap.open .cat-list { display: block; }
+        .cat-list-item {
+            padding: 10px 14px; font-size: 0.85rem; cursor: pointer;
+            color: var(--text-sub); display: flex; align-items: center; gap: 10px;
+            transition: background 0.15s;
+        }
+        .cat-list-item:hover, .cat-list-item.selected { background: rgba(167,139,250,0.1); color: var(--text); }
+        .cat-list-item .cat-id-pill {
+            font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+            background: rgba(124,58,237,0.25); color: var(--purple1); flex-shrink: 0;
+        }
+        .cat-list-empty { padding: 14px; font-size: 0.82rem; color: var(--text-dim); text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="aurora">
+    <div class="aurora-blob ab1"></div>
+    <div class="aurora-blob ab2"></div>
+    <div class="aurora-blob ab3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<div class="shell">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span>CINE</span>FLIX
+            <span class="sidebar-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Overview</div>
+            <div class="nav-item active" onclick="navigate('dashboard')">
+                <span class="ni-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span> Dashboard
+            </div>
+            <div class="nav-section-label" style="margin-top:8px;">Content</div>
+            <div class="nav-item" onclick="navigate('movies')">
+                <span class="ni-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16M2 12h20M2 8h5M17 8h5M2 16h5M17 16h5"/></svg></span> Movies
+            </div>
+            <div class="nav-item" onclick="navigate('categories')">
+                <span class="ni-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7"/></svg></span> Categories
+                <span class="ni-badge" id="catsCountBadge">—</span>
+            </div>
+            <div class="nav-section-label" style="margin-top:8px;">Users</div>
+            <div class="nav-item" onclick="navigate('users')">
+                <span class="ni-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Users
+                <span class="ni-badge" id="usersCountBadge">—</span>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="su-avatar" id="adminAvatar">A</div>
+                <div class="su-info">
+                    <div class="su-name" id="adminName">Admin</div>
+                    <div class="su-role" id="adminRoleLabel">Administrator</div>
+                </div>
+            </div>
+            <a href="home.html" class="btn-home"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/><path d="M3 12v9h18v-9"/></svg> Go to Home</a>
+            <button class="btn-logout" onclick="logout()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Log Out</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div class="topbar-title" id="topbarTitle">Dashboard <span>Overview</span></div>
+            <div class="topbar-actions">
+                <div class="search-bar">
+                    <span style="color:var(--text-dim)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                    <input type="text" placeholder="Quick search…" id="globalSearch" oninput="handleSearch()">
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="panel active" id="panel-dashboard">
+                <div class="page-header">
+                    <div class="page-title">DASH<span>BOARD</span></div>
+                    <button class="btn-primary" onclick="openAddMovie()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Movie</button>
+                </div>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16M2 12h20M2 8h5M17 8h5M2 16h5M17 16h5"/></svg></div>
+                        <div class="stat-val" id="stat-movies">—</div>
+                        <div class="stat-label">Total Movies</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                        <div class="stat-val" id="stat-users">—</div>
+                        <div class="stat-label">Registered Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                        <div class="stat-val" id="stat-admins">—</div>
+                        <div class="stat-label">Admins</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+                        <div class="stat-val" id="stat-cats">—</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                </div>
+                <div class="table-card">
+                    <div class="table-head">
+                        <div class="table-head-title">Recent Movies <span>latest additions</span></div>
+                        <button class="action-btn" onclick="navigate('movies')" style="display:flex;align-items:center;gap:6px;">View All <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+                    </div>
+                    <div id="dashMoviesBody"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div class="panel" id="panel-movies">
+                <div class="page-header">
+                    <div class="page-title">MOVIE<span> Library</span></div>
+                    <button class="btn-primary" onclick="openAddMovie()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Movie</button>
+                </div>
+                <div class="table-card">
+                    <div class="table-head">
+                        <div class="table-head-title">All Movies <span id="moviesCount"></span></div>
+                    </div>
+                    <div id="moviesTableBody"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div class="panel" id="panel-users">
+                <div class="page-header">
+                    <div class="page-title">USER<span> Management</span></div>
+                </div>
+                <div class="table-card">
+                    <div class="table-head">
+                        <div class="table-head-title">All Users <span id="usersCount"></span></div>
+                    </div>
+                    <div id="usersTableBody"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div class="panel" id="panel-categories">
+                <div class="page-header">
+                    <div class="page-title">CATE<span>GORIES</span></div>
+                    <button class="btn-primary" onclick="openAddCategory()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Category</button>
+                </div>
+                <div class="table-card">
+                    <div class="table-head">
+                        <div class="table-head-title">All Categories <span id="catsCount"></span></div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div class="search-bar" style="padding:6px 12px;">
+                                <span style="color:var(--text-dim);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                                <input type="text" placeholder="Search categories…" id="catSearch" oninput="filterCatTable()" style="background:none;border:none;outline:none;font-family:'Outfit',sans-serif;font-size:0.82rem;color:var(--text);width:160px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="catsTableBody"><div class="spinner"></div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+<!-- ══ MODAL: ADD / EDIT MOVIE ══ -->
+<div class="overlay" id="movieModal">
+    <div class="glass-modal" style="max-width:560px;">
+        <div class="modal-header">
+            <div class="modal-title" id="movieModalTitle">ADD MOVIE</div>
+            <button class="modal-close" onclick="closeModal('movieModal')">✕</button>
+        </div>
+        <div class="mform" id="movieForm">
+
+            <!-- Name -->
+            <div class="mform-group">
+                <label>Name *</label>
+                <input type="text" id="mf-name" placeholder="e.g. Inception" maxlength="45">
+            </div>
+
+            <!-- Language + Country -->
+            <div class="mform-row">
+                <div class="mform-group">
+                    <label>Language</label>
+                    <input type="text" id="mf-language" placeholder="e.g. English" maxlength="45">
+                </div>
+                <div class="mform-group">
+                    <label>Country</label>
+                    <input type="text" id="mf-country" placeholder="e.g. USA" maxlength="45">
+                </div>
+            </div>
+
+            <!-- IMDB + Tomato + Price -->
+            <div class="mform-row3">
+                <div class="mform-group">
+                    <label>IMDB (0–10)</label>
+                    <input type="number" id="mf-imdb" placeholder="8.5" min="0" max="10" step="0.1">
+                </div>
+                <div class="mform-group">
+                    <label>Tomato %</label>
+                    <input type="number" id="mf-tomato" placeholder="94" min="0" max="100" step="1">
+                </div>
+                <div class="mform-group">
+                    <label>Price ($)</label>
+                    <input type="number" id="mf-price" placeholder="3.99" min="0" step="0.01">
+                </div>
+            </div>
+
+            <!-- Category + Duration -->
+            <div class="mform-row">
+                <div class="mform-group">
+                    <label style="display:flex;align-items:center;justify-content:space-between;">
+                        Category
+                        <span onclick="navigate('categories');closeModal('movieModal');"
+                              style="font-size:0.62rem;color:var(--purple1);cursor:pointer;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:5px;border:1px solid rgba(167,139,250,0.25);transition:all 0.2s;"
+                              onmouseenter="this.style.background='rgba(167,139,250,0.1)'" onmouseleave="this.style.background=''">
+                            Category Info
+                        </span>
+                    </label>
+                    <div class="cat-dropdown-wrap" id="catDropWrap">
+                        <input type="text" class="cat-search-input" id="mf-category-search"
+                               placeholder="Search or select category…"
+                               oninput="filterCatDropdown()" onfocus="openCatDropdown()" autocomplete="off">
+                        <span class="cat-arrow">▼</span>
+                        <input type="hidden" id="mf-category">
+                        <div class="cat-list" id="catDropList"></div>
+                    </div>
+                </div>
+                <div class="mform-group">
+                    <label>Duration (HH:MM:SS)</label>
+                    <input type="text" id="mf-duration" placeholder="e.g. 02:28:00" maxlength="8"
+                           oninput="formatDuration(this)">
+                </div>
+            </div>
+
+            <!-- Summary (shortdescription) -->
+            <div class="mform-group">
+                <label>Summary</label>
+                <input type="text" id="mf-shortdesc" placeholder="Brief synopsis shown in cards…" maxlength="45"
+                       oninput="countChars(this,'cc-short',45)">
+                <span class="char-hint" id="cc-short">0 / 45</span>
+            </div>
+
+            <!-- Full Description -->
+            <div class="mform-group">
+                <label>Description</label>
+                <textarea id="mf-description" rows="3" placeholder="Detailed plot overview shown on the movie page…" maxlength="255"
+                          oninput="countChars(this,'cc-desc',255)"></textarea>
+                <span class="char-hint" id="cc-desc">0 / 255</span>
+            </div>
+
+            <!-- Image URL -->
+            <div class="mform-group">
+                <label>Image URL</label>
+                <input type="text" id="mf-image" placeholder="https://…/poster.jpg">
+            </div>
+
+            <!-- Stream Link + Trailer Link -->
+            <div class="mform-row">
+                <div class="mform-group">
+                    <label>Stream Link</label>
+                    <input type="text" id="mf-link" placeholder="https://…/movie.mp4">
+                </div>
+                <div class="mform-group">
+                    <label>Trailer Link</label>
+                    <input type="text" id="mf-trailerlink" placeholder="https://youtu.be/…">
+                </div>
+            </div>
+
+            <input type="hidden" id="mf-id">
+            <div class="mform-actions">
+                <button class="action-btn" onclick="closeModal('movieModal')">Cancel</button>
+                <button class="btn-primary" onclick="saveMovie()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Movie</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MODAL: ADD CATEGORY ══ -->
+<div class="overlay" id="categoryModal">
+    <div class="glass-modal" style="max-width:380px;">
+        <div class="modal-header">
+            <div class="modal-title">NEW CATEGORY</div>
+            <button class="modal-close" onclick="closeModal('categoryModal')">✕</button>
+        </div>
+        <div class="mform">
+            <div class="mform-group">
+                <label>Category Name *</label>
+                <input type="text" id="cf-name" placeholder="e.g. Action, Comedy…" maxlength="45">
+            </div>
+            <div class="mform-actions">
+                <button class="action-btn" onclick="closeModal('categoryModal')">Cancel</button>
+                <button class="btn-primary" onclick="saveCategory()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MODAL: CONFIRM DELETE ══ -->
+<div class="overlay" id="confirmModal">
+    <div class="glass-modal" style="max-width:380px;">
+        <div class="confirm-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></div>
+        <div class="modal-title" style="text-align:center;margin-bottom:8px;">DELETE MOVIE</div>
+        <div class="confirm-msg" id="confirmMsg">Are you sure you want to delete <strong id="confirmTarget"></strong>? This cannot be undone.</div>
+        <div class="mform-actions" style="justify-content:center;">
+            <button class="action-btn" onclick="closeModal('confirmModal')">Cancel</button>
+            <button class="btn-primary" style="background:linear-gradient(135deg,#dc2626,#991b1b);box-shadow:0 4px 16px rgba(220,38,38,0.35);" onclick="confirmDelete()">Delete</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    const API = 'http://localhost:9090';
+
+    let currentAdmin = null;
+    let pendingDeleteId = null;
+    let allMovies = [];
+    let allUsers = [];
+    let allCategories = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const stored = sessionStorage.getItem('currentUser');
+        if (!stored) { window.location.href = 'login.html'; return; }
+        const user = JSON.parse(stored);
+        if (!user || user.admin < 1) {
+            alert('Access denied. Admins only.');
+            window.location.href = 'home.html';
+            return;
+        }
+        currentAdmin = user;
+        document.getElementById('adminName').textContent = user.name || 'Admin';
+        document.getElementById('adminAvatar').textContent = (user.name || 'A')[0].toUpperCase();
+
+        if (user.admin === 2) {
+            document.getElementById('adminRoleLabel').textContent = 'Superadmin';
+            document.getElementById('adminRoleLabel').style.color = '#f87171';
+            document.getElementById('adminAvatar').style.background = 'linear-gradient(135deg, #dc2626, #991b1b)';
+        }
+        loadDashboard();
+    });
+
+    const panelMeta = {
+        dashboard:  { title: 'Dashboard',  sub: 'Overview'    },
+        movies:     { title: 'Movies',     sub: 'Library'     },
+        users:      { title: 'Users',      sub: 'Management'  },
+        categories: { title: 'Categories', sub: 'Management'  },
+    };
+
+    function navigate(key) {
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => {
+            if (el.getAttribute('onclick') === `navigate('${key}')`) el.classList.add('active');
+        });
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(`panel-${key}`).classList.add('active');
+        const meta = panelMeta[key] || { title: key, sub: '' };
+        document.getElementById('topbarTitle').innerHTML = `${meta.title} <span>${meta.sub}</span>`;
+        loadPanel(key);
+    }
+
+    async function loadDashboard() {
+        await Promise.all([fetchMovies(), fetchUsers(), fetchCategories()]);
+        renderDashMovies();
+    }
+
+    function loadPanel(key) {
+        if (key === 'movies')     { fetchMovies().then(renderMoviesTable); }
+        if (key === 'users')      { fetchUsers().then(renderUsersTable); }
+        if (key === 'categories') { fetchCategories().then(renderCatsTable); }
+    }
+
+    async function fetchMovies() {
+        try {
+            const res = await fetch(`${API}/movies`);
+            if (!res.ok) throw new Error();
+            allMovies = await res.json();
+        } catch { allMovies = []; }
+        document.getElementById('stat-movies').textContent = allMovies.length;
+        document.getElementById('moviesCount').textContent = `(${allMovies.length} total)`;
+        return allMovies;
+    }
+
+    async function fetchUsers() {
+        try {
+            const res = await fetch(`${API}/admin/users`, {
+                headers: { 'X-User-Id': currentAdmin.id }
+            });
+            if (!res.ok) throw new Error();
+            allUsers = await res.json();
+        } catch { allUsers = []; }
+        const admins = allUsers.filter(u => u.admin === 1).length;
+        document.getElementById('stat-users').textContent = allUsers.length;
+        document.getElementById('stat-admins').textContent = admins;
+        document.getElementById('usersCountBadge').textContent = allUsers.length;
+        document.getElementById('usersCount').textContent = `(${allUsers.length} total)`;
+        return allUsers;
+    }
+
+    async function fetchCategories() {
+        try {
+            const res = await fetch(`${API}/category`);
+            if (!res.ok) throw new Error();
+            allCategories = await res.json();
+        } catch { allCategories = []; }
+        const statEl = document.getElementById('stat-cats');
+        if (statEl) statEl.textContent = allCategories.length;
+        const badgeEl = document.getElementById('catsCountBadge');
+        if (badgeEl) badgeEl.textContent = allCategories.length;
+        const countEl = document.getElementById('catsCount');
+        if (countEl) countEl.textContent = `(${allCategories.length} total)`;
+        buildCatDropdownItems('');
+        return allCategories;
+    }
+
+    function renderDashMovies() {
+        const container = document.getElementById('dashMoviesBody');
+        const recent = [...allMovies].slice(-5).reverse();
+        container.innerHTML = renderMovieRows(recent);
+    }
+
+    function renderMoviesTable() {
+        document.getElementById('moviesTableBody').innerHTML = renderMovieRows(allMovies);
+    }
+
+    function renderMovieRows(movies) {
+        if (!movies.length) return `<div class="empty-state"><div class="es-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16M2 12h20M2 8h5M17 8h5M2 16h5M17 16h5"/></svg></div><p>No movies found.</p></div>`;
+        return `<table>
+    <thead><tr>
+      <th>Name</th><th>Language</th><th>Country</th><th>Category</th><th>IMDB</th><th>Price</th><th style="text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>
+      ${movies.map(m => `
+        <tr>
+          <td>${esc(m.name || '—')}</td>
+          <td>${esc(m.language || '—')}</td>
+          <td>${esc(m.country || '—')}</td>
+          <td>${esc(m.category ? (m.category.name || m.category) : '—')}</td>
+          <td>${m.imdb != null ? m.imdb : '—'}</td>
+          <td>${m.price != null ? '$' + Number(m.price).toFixed(2) : '—'}</td>
+          <td style="text-align:right">
+            <button class="action-btn" onclick="openEditMovie(${m.id})" style="margin-right:6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
+            <button class="action-btn danger" onclick="openConfirmDelete(${m.id}, '${esc(m.name || '')}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete</button>
+          </td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+    }
+
+    function renderUsersTable() {
+        const container = document.getElementById('usersTableBody');
+        if (!allUsers.length) {
+            container.innerHTML = `<div class="empty-state"><div class="es-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><p>No users found.</p></div>`;
+            return;
+        }
+        container.innerHTML = `<table>
+    <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+    <tbody>
+      ${allUsers.map(u => `
+        <tr>
+          <td style="color:var(--text-dim);font-size:0.8rem;">#${u.id}</td>
+          <td>${esc(u.name || '—')}</td>
+          <td>${esc(u.gmail || '—')}</td>
+          <td>
+  <span class="badge ${u.admin === 2 ? 'badge-super' : u.admin === 1 ? 'badge-admin' : 'badge-user'}">
+    ${u.admin === 2 ? 'Superadmin' : u.admin === 1 ? 'Admin' : 'User'}
+  </span>
+</td>
+<td>
+  ${currentAdmin.admin === 2 && u.admin !== 2 ? `
+    ${u.admin === 0
+            ? `<button class="action-btn" onclick="promoteUser(${u.id})">▲ Make Admin</button>`
+            : `<button class="action-btn danger" onclick="demoteUser(${u.id})">▼ Remove Admin</button>`
+        }
+  ` : '—'}
+</td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+    }
+
+    function renderCatsTable() {
+        const container = document.getElementById('catsTableBody');
+        if (!container) return;
+        if (!allCategories.length) {
+            container.innerHTML = '<div class="empty-state"><div class="es-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div><p>No categories yet. Add one!</p></div>';
+            return;
+        }
+        container.innerHTML = `<table>
+    <thead><tr><th>ID</th><th>Name</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody>
+      ${allCategories.map(c => `
+        <tr>
+          <td style="color:var(--text-dim);font-size:0.8rem;width:80px;">#${c.id}</td>
+          <td>${esc(c.name || '—')}</td>
+          <td style="text-align:right">
+            <button class="action-btn danger" onclick="openConfirmDeleteCat(${c.id}, '${esc(c.name || '')}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+            </button>
+          </td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+    }
+
+    function filterCatTable() {
+        const q = document.getElementById('catSearch').value.toLowerCase();
+        const filtered = allCategories.filter(c => (c.name || '').toLowerCase().includes(q));
+        const container = document.getElementById('catsTableBody');
+        if (!container) return;
+        if (!filtered.length) {
+            container.innerHTML = '<div class="empty-state"><div class="es-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><p>No matching categories.</p></div>';
+            return;
+        }
+        container.innerHTML = `<table>
+    <thead><tr><th>ID</th><th>Name</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody>
+      ${filtered.map(c => `
+        <tr>
+          <td style="color:var(--text-dim);font-size:0.8rem;width:80px;">#${c.id}</td>
+          <td>${esc(c.name || '—')}</td>
+          <td style="text-align:right">
+            <button class="action-btn danger" onclick="openConfirmDeleteCat(${c.id}, '${esc(c.name || '')}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg> Delete
+            </button>
+          </td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+    }
+
+
+    async function promoteUser(id) {
+        try {
+            const res = await fetch(`${API}/admin/users/${id}/promote`, {
+                method: 'PUT',
+                headers: { 'X-User-Id': currentAdmin.id }
+            });
+            if (res.ok) {
+                showToast('✓ User promoted to admin!', 'success');
+                await fetchUsers();
+                renderUsersTable();
+            } else {
+                showToast('Failed to promote user.', 'error');
+            }
+        } catch { showToast('Cannot connect to server.', 'error'); }
+    }
+
+    async function demoteUser(id) {
+        try {
+            const res = await fetch(`${API}/admin/users/${id}/demote`, {
+                method: 'PUT',
+                headers: { 'X-User-Id': currentAdmin.id }
+            });
+            if (res.ok) {
+                showToast('✓ Admin demoted to user.', 'success');
+                await fetchUsers();
+                renderUsersTable();
+            } else {
+                showToast('Failed to demote user.', 'error');
+            }
+        } catch { showToast('Cannot connect to server.', 'error'); }
+    }
+
+    function openAddCategory() {
+        document.getElementById('cf-name').value = '';
+        openModal('categoryModal');
+    }
+
+    async function saveCategory() {
+        const name = document.getElementById('cf-name').value.trim();
+        if (!name) { showToast('Category name is required.', 'error'); return; }
+        try {
+            const res = await fetch(`${API}/category`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            if (res.ok) {
+                showToast('✓ Category created!', 'success');
+                closeModal('categoryModal');
+                await fetchCategories();
+                renderCatsTable();
+            } else { showToast('Failed to create category.', 'error'); }
+        } catch { showToast('Cannot connect to server.', 'error'); }
+    }
+
+    let pendingDeleteCatId = null;
+
+    function openConfirmDeleteCat(id, name) {
+        pendingDeleteCatId = id;
+        document.getElementById('confirmTarget').textContent = name;
+        document.querySelector('#confirmModal .modal-title').textContent = 'DELETE CATEGORY';
+        document.querySelector('#confirmModal .confirm-msg').innerHTML =
+            'Are you sure you want to delete category <strong>' + esc(name) + '</strong>? Movies in this category will lose their category assignment.';
+        const btn = document.querySelector('#confirmModal .btn-primary');
+        btn.onclick = confirmDeleteCat;
+        openModal('confirmModal');
+    }
+
+    async function confirmDeleteCat() {
+        if (!pendingDeleteCatId) return;
+        try {
+            const res = await fetch(`${API}/category/${pendingDeleteCatId}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Category deleted.', 'success');
+                closeModal('confirmModal');
+                await fetchCategories();
+                renderCatsTable();
+            } else { showToast('Delete failed. Category may still be in use.', 'error'); }
+        } catch { showToast('Cannot connect to server.', 'error'); }
+        pendingDeleteCatId = null;
+        document.querySelector('#confirmModal .btn-primary').onclick = confirmDelete;
+    }
+
+    function buildCatDropdownItems(query) {
+        const list = document.getElementById('catDropList');
+        if (!list) return;
+        const q = query.toLowerCase();
+        const filtered = allCategories.filter(c => (c.name || '').toLowerCase().includes(q));
+        if (!filtered.length) {
+            list.innerHTML = '<div class="cat-list-empty">No categories found</div>';
+            return;
+        }
+        const selectedId = document.getElementById('mf-category').value;
+        list.innerHTML = filtered.map(c => `
+    <div class="cat-list-item ${String(c.id) === String(selectedId) ? 'selected' : ''}"
+      onclick="selectCategory(${c.id}, '${esc(c.name || '')}')">
+      <span class="cat-id-pill">#${c.id}</span>
+      ${esc(c.name || '')}
+    </div>`).join('');
+    }
+
+    function openCatDropdown() {
+        document.getElementById('catDropWrap').classList.add('open');
+        buildCatDropdownItems(document.getElementById('mf-category-search').value);
+    }
+
+    function filterCatDropdown() {
+        buildCatDropdownItems(document.getElementById('mf-category-search').value);
+        document.getElementById('catDropWrap').classList.add('open');
+    }
+
+    function selectCategory(id, name) {
+        document.getElementById('mf-category').value = id;
+        document.getElementById('mf-category-search').value = name;
+        document.getElementById('catDropWrap').classList.remove('open');
+    }
+
+    document.addEventListener('click', e => {
+        const wrap = document.getElementById('catDropWrap');
+        if (wrap && !wrap.contains(e.target)) wrap.classList.remove('open');
+    });
+
+    // ── MOVIE CRUD ──
+    function openAddMovie() {
+        clearMovieForm();
+        document.getElementById('movieModalTitle').textContent = 'ADD MOVIE';
+        document.getElementById('mf-id').value = '';
+        openModal('movieModal');
+    }
+
+    function openEditMovie(id) {
+        const m = allMovies.find(x => x.id === id);
+        if (!m) return;
+        clearMovieForm();
+        document.getElementById('movieModalTitle').textContent = 'EDIT MOVIE';
+        document.getElementById('mf-id').value       = m.id;
+        document.getElementById('mf-name').value     = m.name || '';
+        document.getElementById('mf-language').value = m.language || '';
+        document.getElementById('mf-country').value  = m.country || '';
+        document.getElementById('mf-shortdesc').value= m.shortdescription || '';
+        document.getElementById('mf-description').value = m.description || '';
+        document.getElementById('mf-price').value    = m.price || '';
+        document.getElementById('mf-image').value    = m.image || '';
+        document.getElementById('mf-link').value     = m.link || '';
+        document.getElementById('mf-trailerlink').value = m.trailerlink || '';
+        document.getElementById('mf-imdb').value     = m.imdb || '';
+        document.getElementById('mf-tomato').value   = m.tomato || '';
+        document.getElementById('mf-duration').value = m.duration || '';
+        document.getElementById('mf-category').value = m.category ? (m.category.id || '') : '';
+        const _cat = m.category ? allCategories.find(c => c.id === (m.category.id || m.category)) : null;
+        document.getElementById('mf-category-search').value = _cat ? _cat.name : '';
+        // update char counters
+        countChars(document.getElementById('mf-shortdesc'), 'cc-short', 45);
+        countChars(document.getElementById('mf-description'), 'cc-desc', 255);
+        openModal('movieModal');
+    }
+
+    function clearMovieForm() {
+        ['mf-name','mf-language','mf-country','mf-shortdesc','mf-description',
+            'mf-price','mf-image','mf-link','mf-trailerlink','mf-imdb','mf-tomato',
+            'mf-duration','mf-category'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('mf-category-search').value = '';
+        document.getElementById('cc-short').textContent = '0 / 45';
+        document.getElementById('cc-desc').textContent  = '0 / 255';
+        const _w = document.getElementById('catDropWrap');
+        if (_w) _w.classList.remove('open');
+    }
+
+    function buildMoviePayload() {
+        const categoryId = document.getElementById('mf-category').value;
+        return {
+            name:             document.getElementById('mf-name').value.trim(),
+            language:         document.getElementById('mf-language').value.trim(),
+            country:          document.getElementById('mf-country').value.trim(),
+            shortdescription: document.getElementById('mf-shortdesc').value.trim(),
+            description:      document.getElementById('mf-description').value.trim(),
+            price:            parseFloat(document.getElementById('mf-price').value) || null,
+            image:            document.getElementById('mf-image').value.trim(),
+            link:             document.getElementById('mf-link').value.trim(),
+            trailerlink:      document.getElementById('mf-trailerlink').value.trim(),
+            imdb:             parseFloat(document.getElementById('mf-imdb').value) || null,
+            tomato:           parseFloat(document.getElementById('mf-tomato').value) || null,
+            duration:         document.getElementById('mf-duration').value.trim() || null,
+            category:         categoryId ? { id: parseInt(categoryId) } : null,
+        };
+    }
+
+    async function saveMovie() {
+        const id = document.getElementById('mf-id').value;
+        const payload = buildMoviePayload();
+        if (!payload.name) { showToast('Movie name is required.', 'error'); return; }
+        try {
+            let res;
+            if (id) {
+                res = await fetch(`${API}/movies/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...payload, id: parseInt(id) })
+                });
+            } else {
+                res = await fetch(`${API}/movies`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
+            if (res.ok) {
+                showToast(id ? '✓ Movie updated!' : '✓ Movie added!', 'success');
+                closeModal('movieModal');
+                await fetchMovies();
+                renderMoviesTable();
+                renderDashMovies();
+            } else { showToast('Server error. Check the console.', 'error'); }
+        } catch { showToast('Cannot connect to server.', 'error'); }
+    }
+
+    function openConfirmDelete(id, title) {
+        pendingDeleteId = id;
+        document.getElementById('confirmTarget').textContent = title;
+        openModal('confirmModal');
+    }
+
+    async function confirmDelete() {
+        if (!pendingDeleteId) return;
+        try {
+            const res = await fetch(`${API}/movies/${pendingDeleteId}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('✓ Movie deleted.', 'success');
+                closeModal('confirmModal');
+                await fetchMovies();
+                renderMoviesTable();
+                renderDashMovies();
+            } else { showToast('Delete failed.', 'error'); }
+        } catch { showToast('Cannot connect to server.', 'error'); }
+        pendingDeleteId = null;
+        document.querySelector('#confirmModal .modal-title').textContent = 'DELETE MOVIE';
+        document.querySelector('#confirmModal .confirm-msg').innerHTML =
+            'Are you sure you want to delete <strong id="confirmTarget"></strong>? This cannot be undone.';
+        document.querySelector('#confirmModal .btn-primary').onclick = confirmDelete;
+    }
+
+    // ── SEARCH ──
+    function handleSearch() {
+        const q = document.getElementById('globalSearch').value.toLowerCase();
+        if (!q) { renderMoviesTable(); renderUsersTable(); return; }
+        const filtered = allMovies.filter(m =>
+            (m.name || '').toLowerCase().includes(q) ||
+            (m.language || '').toLowerCase().includes(q) ||
+            (m.country || '').toLowerCase().includes(q)
+        );
+        document.getElementById('moviesTableBody').innerHTML = renderMovieRows(filtered);
+        const filteredU = allUsers.filter(u =>
+            (u.name || '').toLowerCase().includes(q) ||
+            (u.gmail || '').toLowerCase().includes(q)
+        );
+        const usersPanel = document.getElementById('panel-users');
+        if (usersPanel.classList.contains('active')) {
+            const tmp = allUsers; allUsers = filteredU;
+            renderUsersTable(); allUsers = tmp;
+        }
+    }
+
+    // ── MODALS ──
+    function openModal(id)  { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    document.querySelectorAll('.overlay').forEach(ov => {
+        ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
+    });
+
+    // ── TOAST ──
+    let toastTimer;
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `show ${type}`;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+    }
+
+    // ── AUTH ──
+    function logout() {
+        sessionStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+    }
+
+    // ── UTILS ──
+    function esc(str) {
+        return String(str).replace(/[&<>"']/g, c =>
+            ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function countChars(el, countId, max) {
+        const el2 = document.getElementById(countId);
+        if (el2) el2.textContent = el.value.length + ' / ' + max;
+    }
+
+    function formatDuration(el) {
+        // Auto-insert colons: 022800 → 02:28:00
+        let v = el.value.replace(/\D/g, '').substring(0, 6);
+        if (v.length > 4) v = v.slice(0,2) + ':' + v.slice(2,4) + ':' + v.slice(4);
+        else if (v.length > 2) v = v.slice(0,2) + ':' + v.slice(2);
+        el.value = v;
+    }
+</script>
+</body>
+</html>

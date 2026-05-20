@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CINEFLIX — Premium Movie Rentals</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:          #07050f;
+      --card:        #13102a;
+      --purple1:     #a78bfa;
+      --purple2:     #7c3aed;
+      --purple-glow: rgba(124,58,237,0.4);
+      --purple-soft: rgba(167,139,250,0.08);
+      --text:        #f0ecff;
+      --text-sub:    #9d93be;
+      --text-dim:    #4a4169;
+      --border:      rgba(167,139,250,0.11);
+      --border-h:    rgba(167,139,250,0.26);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--purple2); border-radius: 99px; }
+
+    .aurora { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .ab { position: absolute; border-radius: 50%; filter: blur(100px); animation: drift 14s ease-in-out infinite alternate; }
+    .ab1 { width: 800px; height: 800px; background: #7c3aed; opacity: 0.14; top: -350px; left: -250px; animation-delay: 0s; }
+    .ab2 { width: 600px; height: 600px; background: #4f46e5; opacity: 0.12; bottom: -200px; right: -150px; animation-delay: -5s; }
+    .ab3 { width: 400px; height: 400px; background: #a78bfa; opacity: 0.07; top: 40%; left: 55%; animation-delay: -9s; }
+    @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(40px,25px) scale(1.1); } }
+
+    .grid-overlay {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: linear-gradient(rgba(167,139,250,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(167,139,250,0.035) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* NAV */
+    .navbar {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      height: 76px;
+      width: 92%;
+      max-width: 1100px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      border-radius: 100px;
+      background: rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(30px) saturate(160%) brightness(110%);
+      -webkit-backdrop-filter: blur(30px) saturate(160%) brightness(110%);
+      box-shadow:
+              rgba(255, 255, 255, 0.15) 0px 0px 0px 0.5px inset,
+              rgba(0, 0, 0, 0.25) 0px 12px 48px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.75rem;
+      letter-spacing: 3px;
+      text-decoration: none;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #fff 0%, #a78bfa 60%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 12px rgba(167,139,250,0.4));
+    }
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 9px 18px;
+      border-radius: 50px;
+      transition: 0.3s;
+    }
+    .nav-links a:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+    .nav-right { display: flex; gap: 10px; align-items: center; }
+    .btn-outline-nav { background: none; border: 1px solid var(--border); color: var(--text-sub); border-radius: 10px; font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 0.875rem; padding: 9px 20px; cursor: pointer; transition: all 0.22s; text-decoration: none; }
+    .btn-outline-nav:hover { border-color: var(--border-h); color: var(--text); }
+    .btn-primary-nav {
+      background: linear-gradient(135deg, var(--purple2), #5b21b6); color: #fff; border: none; border-radius: 10px;
+      font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.875rem; padding: 10px 22px; cursor: pointer;
+      transition: all 0.22s; text-decoration: none; box-shadow: 0 4px 16px var(--purple-glow);
+    }
+    .btn-primary-nav:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--purple-glow); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 120px 24px 80px; position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25);
+      color: var(--purple1); font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 2.5px; text-transform: uppercase; padding: 6px 18px; border-radius: 99px;
+      margin-bottom: 32px; animation: fadeUp 0.8s ease both;
+    }
+    .eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--purple1); box-shadow: 0 0 8px var(--purple1); }
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4.5rem, 12vw, 9rem); line-height: 0.88; letter-spacing: 3px;
+      color: var(--text); margin-bottom: 28px; animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .accent {
+      background: linear-gradient(135deg, var(--purple1) 0%, #c4b5fd 50%, #818cf8 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .outline-text { -webkit-text-stroke: 2px rgba(167,139,250,0.4); -webkit-text-fill-color: transparent; }
+    .hero-sub { font-size: clamp(1rem, 2vw, 1.15rem); color: var(--text-sub); max-width: 560px; line-height: 1.75; margin-bottom: 44px; animation: fadeUp 0.8s 0.2s ease both; }
+    .hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; animation: fadeUp 0.8s 0.3s ease both; margin-bottom: 80px; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple2), #5b21b6); color: #fff; border: none; border-radius: 12px;
+      font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem; padding: 15px 36px; cursor: pointer;
+      transition: all 0.25s; text-decoration: none; box-shadow: 0 6px 28px var(--purple-glow); position: relative; overflow: hidden;
+    }
+    .btn-primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent); }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 36px var(--purple-glow); }
+    .btn-ghost { background: rgba(167,139,250,0.08); border: 1px solid var(--border); color: var(--text); border-radius: 12px; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 1rem; padding: 15px 32px; cursor: pointer; transition: all 0.25s; text-decoration: none; }
+    .btn-ghost:hover { border-color: var(--border-h); background: rgba(167,139,250,0.14); }
+
+    /* POSTER STRIP */
+    .poster-strip-wrap {
+      position: relative; width: 100%; overflow: hidden; padding: 20px 0; margin-bottom: 80px;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+    .poster-strip-wrap::before, .poster-strip-wrap::after { content: ''; position: absolute; top: 0; bottom: 0; width: 200px; z-index: 2; }
+    .poster-strip-wrap::before { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
+    .poster-strip-wrap::after  { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
+    .poster-strip { display: flex; gap: 14px; animation: scroll 35s linear infinite; width: max-content; }
+    .poster-strip:hover { animation-play-state: paused; }
+    @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .strip-poster { width: 100px; height: 148px; border-radius: 10px; overflow: hidden; flex-shrink: 0; border: 1px solid var(--border); transition: all 0.3s; cursor: pointer; }
+    .strip-poster:hover { transform: scale(1.08) translateY(-4px); border-color: rgba(167,139,250,0.4); box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
+    .strip-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* STATS */
+    .stats-bar {
+      display: flex; justify-content: center;
+      border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+      backdrop-filter: blur(10px); background: rgba(167,139,250,0.04);
+      max-width: 700px; margin: 0 auto; animation: fadeUp 0.8s 0.5s ease both;
+    }
+    .stat-item { flex: 1; padding: 28px 24px; text-align: center; border-right: 1px solid var(--border); }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; letter-spacing: 1px; line-height: 1;
+      background: linear-gradient(135deg, var(--purple1), #c4b5fd);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-label { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+
+    /* FEATURES */
+    .features-section { position: relative; z-index: 1; padding: 100px 56px; border-top: 1px solid var(--border); }
+    .section-eyebrow { text-align: center; font-size: 0.72rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--purple1); margin-bottom: 16px; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: 2px; text-align: center; color: var(--text); margin-bottom: 64px; }
+    .section-title span { color: var(--purple1); }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1000px; margin: 0 auto; }
+    .feat-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 32px 28px; position: relative; overflow: hidden; transition: all 0.28s; }
+    .feat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(167,139,250,0.5), transparent); opacity: 0; transition: opacity 0.3s; }
+    .feat-card:hover { transform: translateY(-6px); border-color: var(--border-h); }
+    .feat-card:hover::before { opacity: 1; }
+    .feat-icon { width: 52px; height: 52px; border-radius: 14px; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 20px; }
+    .feat-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .feat-card p { font-size: 0.875rem; color: var(--text-sub); line-height: 1.7; }
+
+    /* PREVIEW */
+    .preview-section { position: relative; z-index: 1; padding: 100px 56px; }
+    .preview-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .preview-text .eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--purple1); margin-bottom: 16px; }
+    .preview-text h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 4vw, 3.5rem); letter-spacing: 2px; color: var(--text); line-height: 1; margin-bottom: 20px; }
+    .preview-text h2 span { color: var(--purple1); }
+    .preview-text p { font-size: 0.95rem; color: var(--text-sub); line-height: 1.75; margin-bottom: 28px; }
+    .preview-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .preview-list-item { display: flex; align-items: center; gap: 10px; font-size: 0.875rem; color: var(--text-sub); }
+    .check { color: var(--purple1); }
+    .preview-posters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .prev-poster { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); transition: all 0.3s; aspect-ratio: 2/3; }
+    .prev-poster:first-child { grid-column: span 2; aspect-ratio: unset; height: 200px; }
+    .prev-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .prev-poster:hover { transform: scale(1.03); border-color: var(--border-h); }
+
+    /* GENRES */
+    .genres-section { position: relative; z-index: 1; padding: 80px 56px 100px; border-top: 1px solid var(--border); }
+    .genres-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; max-width: 900px; margin: 48px auto 0; }
+    .genre-pill { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.25s; text-decoration: none; }
+    .genre-pill:hover { background: rgba(167,139,250,0.1); border-color: var(--border-h); transform: translateY(-3px); }
+    .genre-pill span:first-child { font-size: 1.4rem; }
+    .genre-name { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+    .genre-count { font-size: 0.72rem; color: var(--text-dim); }
+
+    /* CTA */
+    .cta-section { position: relative; z-index: 1; padding: 80px 56px 100px; }
+    .cta-inner {
+      max-width: 900px; margin: 0 auto; text-align: center;
+      background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(79,70,229,0.1));
+      border: 1px solid rgba(167,139,250,0.2); border-radius: 28px; padding: 64px 48px; position: relative; overflow: hidden;
+    }
+    .cta-inner::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 300px; height: 1px; background: linear-gradient(90deg, transparent, var(--purple1), transparent); }
+    .cta-inner h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4rem); letter-spacing: 2px; color: var(--text); margin-bottom: 16px; }
+    .cta-inner p { font-size: 1rem; color: var(--text-sub); margin-bottom: 36px; }
+
+    /* FOOTER */
+    footer { position: relative; z-index: 1; padding: 32px 56px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .foot-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #fff 0%, #a78bfa 60%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    footer p { font-size: 0.8rem; color: var(--text-dim); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 900px) {
+      .navbar { padding: 0 20px; width: 95%; }
+      .nav-links { display: none; }
+      .hero { padding: 100px 20px 60px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .preview-inner { grid-template-columns: 1fr; gap: 40px; }
+      .genres-grid { grid-template-columns: repeat(2, 1fr); }
+      .features-section, .preview-section, .genres-section, .cta-section { padding-left: 20px; padding-right: 20px; }
+      footer { padding: 24px 20px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="aurora">
+  <div class="ab ab1"></div>
+  <div class="ab ab2"></div>
+  <div class="ab ab3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<!-- NAV -->
+<nav class="navbar">
+  <a href="home.html" class="nav-logo">CINEFLIX</a>
+  <div class="nav-links">
+    <a href="home.html">Browse</a>
+    <a href="#features">Features</a>
+    <a href="#genres">Genres</a>
+  </div>
+  <div class="nav-right">
+    <a href="login.html" class="btn-outline-nav">Sign In</a>
+    <a href="login.html" class="btn-primary-nav">Get Started →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow"><div class="eyebrow-dot"></div> Premium Cinema Rentals</div>
+  <h1 class="hero-title">
+    Rent<br>
+    <span class="accent">Cinema</span><br>
+    <span class="outline-text">On Demand</span>
+  </h1>
+  <p class="hero-sub">Rent thousands of movies in stunning quality. Discover new favorites, build your watchlist, and enjoy cinema from the comfort of home.</p>
+  <div class="hero-cta">
+    <a href="home.html" class="btn-primary">▶ Browse Movies</a>
+    <a href="login.html" class="btn-ghost">Sign In</a>
+  </div>
+
+  <div class="poster-strip-wrap">
+    <div class="poster-strip" id="posterStrip"></div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-num">10K+</div><div class="stat-label">Movies</div></div>
+    <div class="stat-item"><div class="stat-num">4K</div><div class="stat-label">Ultra HD</div></div>
+    <div class="stat-item"><div class="stat-num">50+</div><div class="stat-label">Genres</div></div>
+    <div class="stat-item"><div class="stat-num">24/7</div><div class="stat-label">Access</div></div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div class="section-eyebrow">Why CINEFLIX</div>
+  <h2 class="section-title">Premium Movie <span>Rentals</span></h2>
+  <div class="features-grid">
+    <div class="feat-card"><div class="feat-icon">🎬</div><h3>Massive Library</h3><p>Over 10,000 titles across every genre — from Hollywood blockbusters to indie gems and international cinema.</p></div>
+    <div class="feat-card"><div class="feat-icon">⚡</div><h3>Instant Access</h3><p>Rent once and watch anytime during your rental period. Stream in seconds with our adaptive HD delivery.</p></div>
+    <div class="feat-card"><div class="feat-icon">🔖</div><h3>Smart Wishlist</h3><p>Save movies you want to watch later. Your personalised watchlist syncs across all your devices.</p></div>
+    <div class="feat-card"><div class="feat-icon">🎯</div><h3>Curated Picks</h3><p>Discover handpicked collections and recommendations based on your viewing history and preferences.</p></div>
+    <div class="feat-card"><div class="feat-icon">📺</div><h3>4K &amp; HDR</h3><p>Experience cinema the way it was meant to be seen — in stunning 4K with HDR and Dolby support.</p></div>
+    <div class="feat-card"><div class="feat-icon">💳</div><h3>Flexible Rentals</h3><p>Affordable pricing with various rental periods. Pay only for what you watch, when you watch it.</p></div>
+  </div>
+</section>
+
+<!-- PREVIEW -->
+<section class="preview-section">
+  <div class="preview-inner">
+    <div class="preview-text">
+      <div class="eyebrow">Curated Just For You</div>
+      <h2>Movies That <span>Matter</span></h2>
+      <p>From pulse-pounding action to tearjerking drama, our curators select the best of what cinema has to offer every single week.</p>
+      <div class="preview-list">
+        <div class="preview-list-item"><span class="check">✦</span> New releases every week</div>
+        <div class="preview-list-item"><span class="check">✦</span> Curator's Pick collections</div>
+        <div class="preview-list-item"><span class="check">✦</span> Trending &amp; Top Rated charts</div>
+        <div class="preview-list-item"><span class="check">✦</span> Deep-dive genre sections</div>
+      </div>
+      <a href="home.html" class="btn-primary" style="display:inline-flex;">Explore Library →</a>
+    </div>
+    <div class="preview-posters" id="previewPosters"></div>
+  </div>
+</section>
+
+<!-- GENRES -->
+<section class="genres-section" id="genres">
+  <div class="section-eyebrow">Browse By Mood</div>
+  <h2 class="section-title">Find Your <span>Genre</span></h2>
+  <div class="genres-grid">
+    <a href="home.html" class="genre-pill"><span>💥</span><div><div class="genre-name">Action</div><div class="genre-count">1,240 titles</div></div></a>
+    <a href="home.html" class="genre-pill"><span>😂</span><div><div class="genre-name">Comedy</div><div class="genre-count">980 titles</div></div></a>
+    <a href="home.html" class="genre-pill"><span>👻</span><div><div class="genre-name">Horror</div><div class="genre-count">640 titles</div></div></a>
+    <a href="home.html" class="genre-pill"><span>🚀</span><div><div class="genre-name">Sci-Fi</div><div class="genre-count">820 titles</div></div></a>
+    <a href="home.html" class="genre-pill"><span>💕</span><div><div class="genre-name">Romance</div><div class="genre-count">560 titles</div></div></a>
+    <a href="home.html" class="genre-pill"><span>🔍</span><div><div class="genre-name">Thriller</div><div class="genre-count">740 titles</div></div></a>
+    <a href="home.html" class="genre-pill"><span>🎭</span><div><div class="genre-name">Drama</div><div class="genre-count">1,100 titles</div></div></a>
+    <a href="home.html" class="genre-pill"><span>✨</span><div><div class="genre-name">Animation</div><div class="genre-count">420 titles</div></div></a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2>Ready to Start Watching?</h2>
+    <p>Join thousands of movie lovers. Create your account and start renting today.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a href="login.html" class="btn-primary">Create Account</a>
+      <a href="home.html" class="btn-ghost">Browse Movies</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-logo">CINEFLIX</div>
+  <p>© 2026 CINEFLIX. All rights reserved.</p>
+</footer>
+
+<script>
+  const POSTERS = [
+    "https://image.tmdb.org/t/p/w200/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg",
+    "https://image.tmdb.org/t/p/w200/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+    "https://image.tmdb.org/t/p/w200/74xTEgt7R36Fpooo50r9T25onhq.jpg",
+    "https://image.tmdb.org/t/p/w200/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg",
+    "https://image.tmdb.org/t/p/w200/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+    "https://image.tmdb.org/t/p/w200/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg",
+    "https://image.tmdb.org/t/p/w200/3bhkrj58Vtu7enYsLeSh2tPXnYj.jpg",
+    "https://image.tmdb.org/t/p/w200/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
+    "https://image.tmdb.org/t/p/w200/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
+    "https://image.tmdb.org/t/p/w200/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg",
+    "https://image.tmdb.org/t/p/w200/iZf0KyrE25z1sage4SYFLCCrMi9.jpg",
+    "https://image.tmdb.org/t/p/w200/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg",
+  ];
+  // Scrolling strip — duplicate for seamless loop
+  const strip = document.getElementById('posterStrip');
+  [...POSTERS, ...POSTERS].forEach(src => {
+    const d = document.createElement('div');
+    d.className = 'strip-poster';
+    d.innerHTML = `<img src="${src}" alt="" loading="lazy">`;
+    strip.appendChild(d);
+  });
+  // Preview grid
+  const pg = document.getElementById('previewPosters');
+  [POSTERS[0], POSTERS[1], POSTERS[4], POSTERS[5]].forEach((src, i) => {
+    const d = document.createElement('div');
+    d.className = 'prev-poster';
+    if (i === 0) d.style.gridColumn = 'span 2';
+    d.innerHTML = `<img src="${src}" alt="" loading="lazy">`;
+    pg.appendChild(d);
+  });
+</script>
+</body>
+</html>

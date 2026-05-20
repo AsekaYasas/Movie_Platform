@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cineflix — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #07050f;
+            --surface:   #100d1e;
+            --card:      #14112a;
+            --card2:     #1a1632;
+            --purple1:   #a78bfa;
+            --purple2:   #7c3aed;
+            --purple3:   #4c1d95;
+            --purple-glow: rgba(124, 58, 237, 0.35);
+            --purple-soft: rgba(167, 139, 250, 0.08);
+            --text:      #f0ecff;
+            --text-sub:  #9d93be;
+            --text-dim:  #4a4169;
+            --border:    rgba(167,139,250,0.12);
+            --border-h:  rgba(167,139,250,0.28);
+            --danger:    #f87171;
+            --success:   #4ade80;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── BACKGROUND AURORA ── */
+        .aurora {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            overflow: hidden;
+        }
+        .aurora-blob {
+            position: absolute; border-radius: 50%;
+            filter: blur(90px); opacity: 0.18;
+            animation: drift 12s ease-in-out infinite alternate;
+        }
+        .ab1 {
+            width: 600px; height: 600px;
+            background: #7c3aed;
+            top: -200px; left: -150px;
+            animation-delay: 0s;
+        }
+        .ab2 {
+            width: 500px; height: 500px;
+            background: #4f46e5;
+            bottom: -150px; right: -100px;
+            animation-delay: -4s;
+        }
+        .ab3 {
+            width: 300px; height: 300px;
+            background: #a78bfa;
+            top: 50%; left: 50%; transform: translate(-50%,-50%);
+            animation-delay: -8s;
+        }
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(30px, 20px) scale(1.08); }
+        }
+
+        /* ── GRID OVERLAY ── */
+        .grid-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background-image:
+                    linear-gradient(rgba(167,139,250,0.04) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(167,139,250,0.04) 1px, transparent 1px);
+            background-size: 52px 52px;
+        }
+
+        /* ── MAIN WRAPPER ── */
+        .page-wrap {
+            position: relative; z-index: 1;
+            display: flex; align-items: center; gap: 80px;
+            padding: 32px 24px; width: 100%; max-width: 960px;
+        }
+
+        /* ── LEFT BRANDING ── */
+        .brand-side {
+            flex: 1; max-width: 380px;
+            display: flex; flex-direction: column; gap: 24px;
+        }
+        .brand-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem; letter-spacing: 3px; line-height: 1;
+            color: var(--text);
+        }
+        .brand-logo span { color: var(--purple1); }
+        .brand-tagline {
+            font-size: 2rem; font-weight: 700; line-height: 1.2;
+            color: var(--text);
+        }
+        .brand-tagline em {
+            font-style: normal;
+            background: linear-gradient(135deg, var(--purple1), #c4b5fd);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .brand-desc {
+            font-size: 0.9rem; color: var(--text-sub); line-height: 1.7;
+        }
+        .brand-features {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .brand-feat {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.85rem; color: var(--text-sub);
+        }
+        .feat-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--purple1); flex-shrink: 0;
+            box-shadow: 0 0 8px var(--purple1);
+        }
+
+        /* ── CARD ── */
+        .auth-card {
+            flex: 0 0 420px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                    0 0 0 1px rgba(167,139,250,0.06),
+                    0 40px 80px rgba(0,0,0,0.5),
+                    inset 0 1px 0 rgba(167,139,250,0.12);
+        }
+        .auth-card::before {
+            content: '';
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--purple1), transparent);
+        }
+
+        /* ── TABS ── */
+        .auth-tabs {
+            display: flex;
+            background: rgba(167,139,250,0.06);
+            border: 1px solid var(--border);
+            border-radius: 12px; padding: 4px; gap: 4px;
+            margin-bottom: 32px;
+        }
+        .tab-btn {
+            flex: 1; background: none; border: none; cursor: pointer;
+            font-family: 'Outfit', sans-serif; font-weight: 600;
+            font-size: 0.78rem; letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-sub); padding: 11px;
+            border-radius: 9px; transition: all 0.25s ease;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--purple2), #6d28d9);
+            color: #fff;
+            box-shadow: 0 4px 16px var(--purple-glow);
+        }
+        .tab-btn:not(.active):hover { color: var(--text); background: var(--purple-soft); }
+
+        /* ── FORM ── */
+        .auth-form { display: flex; flex-direction: column; gap: 20px; }
+
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label {
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--text-sub);
+        }
+
+        .input-wrap {
+            position: relative; display: flex; align-items: center;
+        }
+        .input-icon {
+            position: absolute; left: 14px;
+            font-size: 1rem; color: var(--text-dim);
+            pointer-events: none;
+        }
+        .form-group input {
+            width: 100%;
+            background: rgba(167,139,250,0.05);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif; font-size: 0.9rem;
+            padding: 13px 16px 13px 42px;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+        .form-group input:focus {
+            border-color: var(--purple1);
+            background: rgba(167,139,250,0.09);
+            box-shadow: 0 0 0 3px rgba(167,139,250,0.14);
+        }
+        .form-group input::placeholder { color: var(--text-dim); }
+
+        /* ── SUBMIT BTN ── */
+        .btn-submit {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, var(--purple2) 0%, #5b21b6 100%);
+            border: none; border-radius: 12px;
+            color: #fff; font-family: 'Outfit', sans-serif;
+            font-weight: 700; font-size: 0.95rem; letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 24px var(--purple-glow);
+            position: relative; overflow: hidden;
+        }
+        .btn-submit::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 32px rgba(124,58,237,0.5);
+        }
+        .btn-submit:active { transform: translateY(0); }
+
+        /* ── MESSAGE ── */
+        .form-message {
+            min-height: 18px; font-size: 0.82rem;
+            font-weight: 500; text-align: center; border-radius: 8px;
+            padding: 0 4px;
+        }
+
+        /* ── DIVIDER ── */
+        .or-divider {
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text-dim); font-size: 0.78rem; letter-spacing: 1px;
+        }
+        .or-divider::before, .or-divider::after {
+            content: ''; flex: 1; height: 1px;
+            background: var(--border);
+        }
+
+        /* ── BACK LINK ── */
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--text-sub); text-decoration: none;
+            font-size: 0.82rem; margin-bottom: 28px;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--purple1); }
+
+        /* ── PASSWORD TOGGLE ── */
+        .pw-toggle {
+            position: absolute; right: 14px; cursor: pointer;
+            color: var(--text-dim); font-size: 1rem;
+            background: none; border: none; padding: 0;
+            transition: color 0.2s;
+        }
+        .pw-toggle:hover { color: var(--purple1); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 760px) {
+            .brand-side { display: none; }
+            .auth-card { flex: 0 0 100%; max-width: 420px; }
+            .page-wrap { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="aurora">
+    <div class="aurora-blob ab1"></div>
+    <div class="aurora-blob ab2"></div>
+    <div class="aurora-blob ab3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<div class="page-wrap">
+
+    <!-- Brand Side -->
+    <div class="brand-side">
+        <a href="home.html" class="back-link">← Back to Home</a>
+        <div class="brand-logo"><span>CINE</span>FLIX</div>
+        <div class="brand-tagline">Your world of <em>cinema</em> awaits.</div>
+        <p class="brand-desc">
+            Join millions of viewers streaming the latest movies, top series, and hidden gems — all in one place.
+        </p>
+        <div class="brand-features">
+            <div class="brand-feat"><div class="feat-dot"></div> Thousands of movies</div>
+            <div class="brand-feat"><div class="feat-dot"></div> Personalised watchlists</div>
+            <div class="brand-feat"><div class="feat-dot"></div> HD &amp; 4K streaming</div>
+            <div class="brand-feat"><div class="feat-dot"></div> Free to create an account</div>
+        </div>
+    </div>
+
+    <!-- Auth Card -->
+    <div class="auth-card">
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+            <button class="tab-btn active" id="signinTab" onclick="switchTab('signin')">Sign In</button>
+            <button class="tab-btn" id="registerTab" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Sign In Form -->
+        <div id="signinFormWrap">
+            <div class="auth-form" id="signinForm">
+                <div class="form-group">
+                    <label for="signin-gmail">Email Address</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">✉️</span> <input type="email" id="signin-gmail" placeholder="you@gmail.com" required autocomplete="email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signin-password">Password</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="signin-password" placeholder="••••••••" required autocomplete="current-password">
+                        <button class="pw-toggle" id="pwToggleSign" onclick="togglePw('signin-password','pwToggleSign')">👁</button>
+                    </div>
+                </div>
+                <button class="btn-submit" onclick="handleSignin()">Sign In →</button>
+                <p class="form-message" id="signin-message"></p>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerFormWrap" style="display:none;">
+            <div class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="register-name">Username</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">👤</span>
+                        <input type="text" id="register-name" placeholder="your_username" maxlength="45" required autocomplete="username">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password</label>
+                    <div class="input-wrap">
+                        <span class="input-icon">🔒</span>
+                        <input type="password" id="register-password" placeholder="••••••••" maxlength="45" required autocomplete="new-password">
+                        <button class="pw-toggle" id="pwToggleReg" onclick="togglePw('register-password','pwToggleReg')">👁</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="register-gmail">Email <span style="color:var(--text-dim);font-weight:400;">(Optional)</span></label>
+                    <div class="input-wrap">
+                        <span class="input-icon">✉️</span>
+                        <input type="email" id="register-gmail" placeholder="your@email.com" maxlength="45" autocomplete="email">
+                    </div>
+                </div>
+                <button class="btn-submit" onclick="handleRegister()">Create Account →</button>
+                <p class="form-message" id="register-message"></p>
+            </div>
+        </div>
+
+    </div><!-- /auth-card -->
+</div><!-- /page-wrap -->
+
+<script>
+    function switchTab(tab) {
+        const isSignin = tab === 'signin';
+        document.getElementById('signinTab').classList.toggle('active', isSignin);
+        document.getElementById('registerTab').classList.toggle('active', !isSignin);
+        document.getElementById('signinFormWrap').style.display = isSignin ? '' : 'none';
+        document.getElementById('registerFormWrap').style.display = isSignin ? 'none' : '';
+    }
+
+    function togglePw(inputId, btnId) {
+        const inp = document.getElementById(inputId);
+        const btn = document.getElementById(btnId);
+        if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+        else { inp.type = 'password'; btn.textContent = '👁'; }
+    }
+
+    function setMsg(id, text, ok) {
+        const el = document.getElementById(id);
+        el.textContent = text;
+        el.style.color = ok ? '#4ade80' : '#f87171';
+        if (ok) el.style.background = 'rgba(74,222,128,0.07)';
+        else el.style.background = 'rgba(248,113,113,0.07)';
+        el.style.padding = text ? '8px 12px' : '0';
+        el.style.marginTop = text ? '4px' : '0';
+    }
+
+    async function handleSignin() {
+        // Note: Even though the ID is 'signin-name', you MUST type your GMAIL here!
+        const loginIdentifier = document.getElementById('signin-gmail').value.trim()
+        const password = document.getElementById('signin-password').value;
+        const msgId = 'signin-message';
+
+        // ADD THESE TWO LINES:
+        console.log("SENDING TO JAVA - Email:", loginIdentifier);
+        console.log("SENDING TO JAVA - Password:", password);
+
+        if (!loginIdentifier || !password) {
+            setMsg(msgId, 'Please enter your Gmail and password.', false);
+            return;
+        }
+
+        try {
+            const res = await fetch('http://localhost:9090/user/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // We map the input to "gmail" because your Java uses user.getGmail()
+                body: JSON.stringify({ gmail: loginIdentifier, password: password })
+            });
+
+            // CRITICAL FIX: Read as text first. If Java returns null, textResponse will be empty ('').
+            const textResponse = await res.text();
+
+            if (!textResponse) {
+                // Java returned null (Empty body = wrong email/password)
+                setMsg(msgId, 'Invalid Gmail or password.', false);
+                return;
+            }
+
+            // If it's not empty, it's safe to parse as JSON
+            const user = JSON.parse(textResponse);
+
+            if (user && user.id) {
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                setMsg(msgId, '✓ Login successful! Redirecting…', true);
+                setTimeout(() => {
+                    window.location.href = user.admin === 1 ? 'admin.html' : 'home.html';
+                }, 1000);
+            } else {
+                setMsg(msgId, 'Invalid Gmail or password.', false);
+            }
+
+        } catch (e) {
+            console.error("Login Error:", e);
+            setMsg(msgId, 'Server error. Check browser console (F12).', false);
+        }
+    }
+
+    async function handleRegister() {
+        const name = document.getElementById('register-name').value.trim();
+        const password = document.getElementById('register-password').value;
+        const gmail = document.getElementById('register-gmail').value.trim();
+        const msgId = 'register-message';
+
+        if (!name || !password || !gmail) {
+            setMsg(msgId, 'All fields are required.', false);
+            return;
+        }
+
+        const payload = { name, password, gmail, admin: 0 };
+
+        try {
+            const res = await fetch('http://localhost:9090/user/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.status === 201) {
+                const user = await res.json();
+                sessionStorage.setItem('currentUser', JSON.stringify(user));
+                setMsg(msgId, '✓ Account created!', true);
+                setTimeout(() => window.location.href = 'home.html', 1000);
+            }
+            else if (res.status === 409) {
+                const error = await res.json();
+                setMsg(msgId, error.message || 'Email already registered.', false);
+            }
+            else {
+                setMsg(msgId, 'Registration failed. Please try again.', false);
+            }
+        } catch (e) {
+            setMsg(msgId, 'Cannot connect to server.', false);
+        }
+    }
+
+    // Enter key support
+    document.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        if (document.getElementById('signinFormWrap').style.display !== 'none') handleSignin();
+        else handleRegister();
+    });
+</script>
+</body>
+</html>

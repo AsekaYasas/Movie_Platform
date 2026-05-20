@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cineflix — Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg:          #07050f;
+            --surface:     #0f0c1e;
+            --card:        #13102a;
+            --card2:       #1a1635;
+            --purple1:     #a78bfa;
+            --purple2:     #7c3aed;
+            --purple3:     #4c1d95;
+            --purple-glow: rgba(124,58,237,0.35);
+            --purple-soft: rgba(167,139,250,0.07);
+            --text:        #f0ecff;
+            --text-sub:    #9d93be;
+            --text-dim:    #4a4169;
+            --border:      rgba(167,139,250,0.11);
+            --border-h:    rgba(167,139,250,0.26);
+            --success:     #4ade80;
+            --danger:      #f87171;
+            --nav-h:       68px;
+        }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; -webkit-font-smoothing: antialiased;
+        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--purple2); border-radius: 99px; }
+
+        /* ── AURORA BG ── */
+        .aurora { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .aurora-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.1; }
+        .ab1 { width: 700px; height: 700px; background: #7c3aed; top: -300px; left: -200px; }
+        .ab2 { width: 500px; height: 500px; background: #4f46e5; bottom: -200px; right: -100px; }
+
+        /* ── NAV ── */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: var(--nav-h);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 48px;
+            background: rgba(7,5,15,0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.7rem; letter-spacing: 2px;
+            color: var(--text); text-decoration: none;
+        }
+        .nav-logo span { color: var(--purple1); }
+        .nav-right { display: flex; align-items: center; gap: 12px; }
+        .btn-nav {
+            background: var(--purple-soft); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text-sub);
+            font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 500;
+            padding: 8px 18px; cursor: pointer; transition: all 0.22s;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-nav:hover { color: var(--text); border-color: var(--border-h); background: rgba(167,139,250,0.12); }
+        .btn-logout { color: var(--text-sub); }
+        .btn-logout:hover { color: var(--danger); border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.06); }
+
+        /* ── MAIN ── */
+        .main { padding-top: var(--nav-h); position: relative; z-index: 1; }
+
+        /* ── PROFILE HERO ── */
+        .profile-hero {
+            padding: 56px 72px 48px;
+            background: linear-gradient(to bottom, rgba(124,58,237,0.08) 0%, transparent 100%);
+            border-bottom: 1px solid var(--border);
+            position: relative; overflow: hidden;
+        }
+        .profile-hero::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--purple1), transparent);
+        }
+        .profile-header { display: flex; align-items: center; gap: 32px; }
+
+        /* ── AVATAR ── */
+        .avatar-wrap { position: relative; flex-shrink: 0; }
+        .avatar {
+            width: 100px; height: 100px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--purple2), #6d28d9, #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.6rem; font-weight: 700; color: #fff;
+            border: 3px solid rgba(167,139,250,0.35);
+            box-shadow: 0 0 40px rgba(124,58,237,0.4), 0 0 80px rgba(124,58,237,0.15);
+            user-select: none;
+        }
+        .avatar-ring {
+            position: absolute; inset: -6px; border-radius: 50%;
+            border: 1.5px solid rgba(167,139,250,0.2);
+            animation: spin 8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .avatar-ring::after {
+            content: ''; position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--purple1);
+            box-shadow: 0 0 8px var(--purple1);
+        }
+
+        .profile-info { flex: 1; }
+        .profile-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.6rem; letter-spacing: 1.5px; color: var(--text);
+            line-height: 1; margin-bottom: 6px;
+        }
+        .profile-email { font-size: 0.9rem; color: var(--text-sub); margin-bottom: 12px; }
+        .profile-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25);
+            color: var(--purple1); font-size: 0.72rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            padding: 4px 14px; border-radius: 99px;
+        }
+        .profile-badge.admin {
+            background: rgba(255, 214, 0, 0.12);
+            border: 1px solid rgba(255, 214, 0, 0.3);
+        }
+        .profile-badge.admin .badge-text {
+            background: linear-gradient(135deg, #ffd600, #ffaa00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .profile-badge.super {
+            background: rgba(248, 113, 113, 0.12);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+        .profile-badge.super .badge-text {
+            background: linear-gradient(135deg, #f87171, #dc2626);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .badge-dot.super {
+            background: #f87171;
+            box-shadow: 0 0 8px #f87171;
+        }
+        .badge-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--purple1); box-shadow: 0 0 6px var(--purple1);
+        }
+        .badge-dot.admin {
+            background: #ffd600;
+            box-shadow: 0 0 8px #ffd600;
+        }
+
+        .profile-stats {
+            display: flex; gap: 32px; margin-left: auto;
+        }
+        .p-stat { text-align: center; }
+        .p-stat-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem; color: var(--text); letter-spacing: 1px; line-height: 1;
+        }
+        .p-stat-label { font-size: 0.72rem; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; }
+
+        /* ── CONTENT ── */
+        .profile-content { padding: 48px 72px; display: flex; flex-direction: column; gap: 24px; }
+
+        /* ── SECTION LABEL ── */
+        .section-label {
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--text-dim);
+            margin-bottom: 16px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* ── CARDS ── */
+        .cards-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        .pcard {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px; padding: 28px;
+            position: relative; overflow: hidden;
+            transition: border-color 0.25s;
+        }
+        .pcard::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(167,139,250,0.4), transparent);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .pcard:hover { border-color: var(--border-h); }
+        .pcard:hover::before { opacity: 1; }
+        .pcard.full { grid-column: 1 / -1; }
+        .pcard.danger-card { border-color: rgba(248,113,113,0.15); }
+        .pcard.danger-card:hover { border-color: rgba(248,113,113,0.35); }
+        .pcard.danger-card::before {
+            background: linear-gradient(90deg, transparent, rgba(248,113,113,0.4), transparent);
+        }
+
+        /* ── FIELDS ── */
+        .field { margin-bottom: 18px; }
+        .field:last-of-type { margin-bottom: 0; }
+        .field label {
+            display: block; font-size: 0.7rem; font-weight: 700;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-dim); margin-bottom: 8px;
+        }
+        .input-wrap { position: relative; display: flex; align-items: center; }
+        .input-icon { position: absolute; left: 14px; font-size: 0.95rem; color: var(--text-dim); pointer-events: none; }
+
+        .field input {
+            width: 100%;
+            background: rgba(167,139,250,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text);
+            font-family: 'Outfit', sans-serif; font-size: 0.9rem;
+            padding: 12px 14px 12px 40px;
+            outline: none; transition: all 0.22s;
+        }
+        .field input:focus {
+            border-color: var(--purple1);
+            background: rgba(167,139,250,0.09);
+            box-shadow: 0 0 0 3px rgba(167,139,250,0.12);
+        }
+        .field input:disabled {
+            opacity: 0.45; cursor: not-allowed;
+            background: rgba(167,139,250,0.02);
+        }
+        .field input::placeholder { color: var(--text-dim); }
+
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        /* ── ACTION BUTTONS ── */
+        .actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-purple {
+            background: linear-gradient(135deg, var(--purple2), #5b21b6);
+            border: none; border-radius: 10px; color: #fff;
+            font-family: 'Outfit', sans-serif; font-weight: 700;
+            font-size: 0.85rem; padding: 11px 22px; cursor: pointer;
+            transition: all 0.22s;
+            box-shadow: 0 4px 16px var(--purple-glow);
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-purple:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(124,58,237,0.5);
+        }
+        .btn-outline {
+            background: var(--purple-soft); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text-sub);
+            font-family: 'Outfit', sans-serif; font-weight: 600;
+            font-size: 0.85rem; padding: 11px 22px; cursor: pointer;
+            transition: all 0.22s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-outline:hover { border-color: var(--border-h); color: var(--text); background: rgba(167,139,250,0.12); }
+        .btn-danger-outline {
+            background: rgba(248,113,113,0.06); border: 1px solid rgba(248,113,113,0.25);
+            border-radius: 10px; color: var(--danger);
+            font-family: 'Outfit', sans-serif; font-weight: 600;
+            font-size: 0.85rem; padding: 11px 22px; cursor: pointer;
+            transition: all 0.22s;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-danger-outline:hover {
+            background: var(--danger); color: #fff;
+            box-shadow: 0 4px 16px rgba(248,113,113,0.35);
+        }
+
+        /* ── DANGER TEXT ── */
+        .danger-desc { font-size: 0.85rem; color: var(--text-sub); line-height: 1.65; margin-bottom: 20px; }
+        .danger-warn {
+            background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.18);
+            border-radius: 10px; padding: 12px 16px;
+            font-size: 0.82rem; color: var(--danger);
+            margin-bottom: 20px; display: flex; align-items: flex-start; gap: 8px;
+        }
+
+        /* ── MODAL ── */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            z-index: 999; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s;
+        }
+        .modal-backdrop.open { opacity: 1; pointer-events: all; }
+        .modal {
+            background: var(--card2); border: 1px solid rgba(248,113,113,0.3);
+            border-radius: 20px; padding: 36px; max-width: 440px; width: 90%;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+            transform: scale(0.92); transition: transform 0.25s;
+        }
+        .modal-backdrop.open .modal { transform: scale(1); }
+        .modal h3 {
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem;
+            letter-spacing: 1.5px; color: var(--danger); margin-bottom: 12px;
+        }
+        .modal p { font-size: 0.9rem; color: var(--text-sub); line-height: 1.65; margin-bottom: 24px; }
+        .modal-actions { display: flex; gap: 10px; }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed; bottom: 32px; right: 32px; z-index: 9999;
+            background: var(--card2); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px 20px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            font-size: 0.875rem; font-weight: 500;
+            transform: translateY(80px); opacity: 0;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 260px;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-color: rgba(74,222,128,0.35); }
+        .toast.error { border-color: rgba(248,113,113,0.35); }
+
+        /* ── EDIT STATE ── */
+        .edit-indicator {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.25);
+            border-radius: 6px; padding: 3px 10px;
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+            color: var(--purple1); text-transform: uppercase;
+            opacity: 0; transition: opacity 0.2s;
+            margin-left: 8px;
+        }
+        .editing .edit-indicator { opacity: 1; }
+
+        @media (max-width: 900px) {
+            .navbar { padding: 0 20px; }
+            .profile-hero { padding: 36px 20px 28px; }
+            .profile-header { flex-wrap: wrap; }
+            .profile-stats { margin-left: 0; }
+            .profile-content { padding: 28px 20px; }
+            .cards-row { grid-template-columns: 1fr; }
+            .pcard.full { grid-column: 1; }
+            .field-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="aurora">
+    <div class="aurora-blob ab1"></div>
+    <div class="aurora-blob ab2"></div>
+</div>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="home.html" class="nav-logo"><span>CINE</span>FLIX</a>
+    <div class="nav-right">
+        <a href="home.html" class="btn-nav">← Home</a>
+        <button class="btn-nav btn-logout" onclick="logout()">Logout</button>
+    </div>
+</nav>
+
+<!-- Main -->
+<main class="main">
+
+    <!-- Hero -->
+    <section class="profile-hero">
+        <div class="profile-header">
+            <div class="avatar-wrap">
+                <div class="avatar" id="avatarCircle">?</div>
+                <div class="avatar-ring"></div>
+            </div>
+
+            <div class="profile-info">
+                <h1 class="profile-name" id="profileName">Loading…</h1>
+                <p class="profile-email" id="profileEmail">—</p>
+                <div class="profile-badge" id="profileBadge">
+                    <div class="badge-dot"></div>
+                    <span class="badge-text">Member</span>
+                </div>
+            </div>
+
+            <div class="profile-stats">
+                <div class="p-stat">
+                    <div class="p-stat-num">0</div>
+                    <div class="p-stat-label">Watchlist</div>
+                </div>
+                <div class="p-stat">
+                    <div class="p-stat-num">0</div>
+                    <div class="p-stat-label">Watched</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content -->
+    <div class="profile-content">
+
+        <!-- Read / Update Section -->
+        <div>
+            <div class="section-label">Account Details</div>
+            <div class="cards-row">
+
+                <!-- Profile Info Card -->
+                <div class="pcard" id="infoCard">
+                    <div style="display:flex;align-items:center;margin-bottom:20px;">
+                        <span style="font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-sub);">Profile Info</span>
+                        <span class="edit-indicator" id="editIndicator">● Editing</span>
+                    </div>
+
+                    <div class="field">
+                        <label for="f-username">Username</label>
+                        <div class="input-wrap">
+                            <input type="text" id="f-username" placeholder="Enter username" disabled style="padding-left: 14px;">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="f-email">Email</label>
+                        <div class="input-wrap">
+                            <input type="email" id="f-email" placeholder="Enter email address" disabled style="padding-left: 14px;">
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn-outline" id="editBtn" onclick="toggleEdit()">✏️ Edit</button>
+                        <button class="btn-purple" id="saveBtn" onclick="saveProfile()" style="display:none;">💾 Save Changes</button>
+                        <button class="btn-outline" id="cancelBtn" onclick="cancelEdit()" style="display:none;">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Change Password Card -->
+                <div class="pcard">
+                    <div style="font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-sub);margin-bottom:20px;">Change Password</div>
+
+                    <div class="field">
+                        <label for="f-cur-pw">Current Password</label>
+                        <div class="input-wrap">
+                            <input type="password" id="f-cur-pw" placeholder="Enter current password" style="padding-left: 14px;">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="f-new-pw">New Password</label>
+                        <div class="input-wrap">
+                            <input type="password" id="f-new-pw" placeholder="Minimum 6 characters" style="padding-left: 14px;">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="f-confirm-pw">Confirm New Password</label>
+                        <div class="input-wrap">
+                            <input type="password" id="f-confirm-pw" placeholder="Re-enter new password" style="padding-left: 14px;">
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn-purple" onclick="changePassword()">🔐 Update Password</button>
+                    </div>
+                    <p class="form-message" id="pw-message" style="font-size:0.82rem;margin-top:10px;min-height:16px;"></p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div>
+            <div class="section-label">Danger Zone</div>
+            <div class="pcard danger-card full">
+                <div style="font-size:0.75rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(248,113,113,0.6);margin-bottom:16px;">Delete Account</div>
+                <div class="danger-warn">
+                    ⚠️ This action is permanent and cannot be undone. All your data will be deleted immediately.
+                </div>
+                <p class="danger-desc">
+                    Deleting your account will remove your profile, watchlist, and all preferences.
+                    You will be immediately signed out and redirected to the home page.
+                </p>
+                <button class="btn-danger-outline" onclick="openDeleteModal()">🗑 Delete My Account</button>
+            </div>
+        </div>
+
+    </div><!-- /profile-content -->
+</main>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-backdrop" id="deleteModal">
+    <div class="modal">
+        <h3>Delete Account?</h3>
+        <p>
+            You're about to permanently delete your account. This cannot be reversed.
+            All your watchlists and preferences will be gone forever.
+        </p>
+        <div class="field" style="margin-bottom: 24px;">
+            <label for="delete-confirm" style="color: var(--danger); margin-bottom: 8px;">Type <strong>DELETE</strong> to confirm</label>
+            <input type="text" id="delete-confirm" placeholder="Type DELETE"
+                   style="width: 100%; background: rgba(248,113,113,0.05); border: 1px solid rgba(248,113,113,0.25);
+                          border-radius: 10px; color: var(--text); font-family: 'Outfit', sans-serif;
+                          font-size: 0.9rem; padding: 12px 14px; outline: none;">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-danger-outline" id="confirmDeleteBtn" onclick="confirmDelete()" disabled style="opacity: 0.5; cursor: not-allowed;">Yes, delete it</button>
+            <button class="btn-outline" onclick="closeDeleteModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+    <span id="toast-icon"></span>
+    <span id="toast-text"></span>
+</div>
+
+<script>
+    let currentUser = null;
+    let isEditing = false;
+    let originalData = {};
+
+    // ── AUTH HELPER FUNCTIONS ──
+    function getCurrentUser() {
+        const userStr = sessionStorage.getItem('currentUser');
+        return userStr ? JSON.parse(userStr) : null;
+    }
+
+    function logout() {
+        sessionStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+    }
+
+    // ── INITIALIZATION ──
+    window.addEventListener('DOMContentLoaded', async () => {
+        currentUser = getCurrentUser();
+
+        if (!currentUser) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Try to fetch fresh data from server
+        try {
+            const res = await fetch(`http://localhost:9090/user/${currentUser.id}`);
+            if (res.ok) {
+                currentUser = await res.json();
+                // Update session storage with fresh data
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+        } catch (err) {
+            console.log('Using cached user data (server offline)');
+        }
+
+        populateProfile();
+    });
+
+    function populateProfile() {
+        const initials = (currentUser.name || '?')[0].toUpperCase();
+        document.getElementById('avatarCircle').textContent = initials;
+        document.getElementById('profileName').textContent = currentUser.name || '—';
+        document.getElementById('profileEmail').textContent = currentUser.gmail || 'No email set';
+        document.getElementById('f-username').value = currentUser.name || '';
+        document.getElementById('f-email').value = currentUser.gmail || '';
+        originalData = { name: currentUser.name, gmail: currentUser.gmail };
+
+        // Update badge for admin users
+        const badge = document.getElementById('profileBadge');
+        const badgeDot = badge.querySelector('.badge-dot');
+        const badgeText = badge.querySelector('.badge-text');
+
+        if (currentUser.admin === 2) {
+            badge.classList.add('super');
+            badgeDot.classList.add('super');
+            badgeText.textContent = 'Superadmin';
+        } else if (currentUser.admin === 1) {
+            badge.classList.add('admin');
+            badgeDot.classList.add('admin');
+            badgeText.textContent = 'Admin';
+        } else {
+            badge.classList.remove('admin');
+            badge.classList.remove('super');
+            badgeDot.classList.remove('admin');
+            badgeDot.classList.remove('super');
+            badgeText.textContent = 'Member';
+        }
+    }
+
+    function toggleEdit() {
+        isEditing = true;
+        document.getElementById('infoCard').classList.add('editing');
+        document.getElementById('f-username').disabled = false;
+        document.getElementById('f-email').disabled = false;
+        document.getElementById('f-username').focus();
+        document.getElementById('editBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = '';
+        document.getElementById('cancelBtn').style.display = '';
+    }
+
+    function cancelEdit() {
+        isEditing = false;
+        document.getElementById('infoCard').classList.remove('editing');
+        document.getElementById('f-username').value = originalData.name || '';
+        document.getElementById('f-email').value = originalData.gmail || '';
+        document.getElementById('f-username').disabled = true;
+        document.getElementById('f-email').disabled = true;
+        document.getElementById('editBtn').style.display = '';
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('cancelBtn').style.display = 'none';
+    }
+
+    async function saveProfile() {
+        const newName = document.getElementById('f-username').value.trim();
+        const newEmail = document.getElementById('f-email').value.trim();
+
+        if (!newName) {
+            showToast('Username cannot be empty.', 'error');
+            return;
+        }
+
+        const updated = { ...currentUser, name: newName, gmail: newEmail || null };
+
+        try {
+            const res = await fetch(`http://localhost:9090/user/${currentUser.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated)
+            });
+
+            if (res.ok) {
+                currentUser = updated;
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+                originalData = { name: newName, gmail: newEmail };
+                populateProfile();
+                cancelEdit();
+                showToast('Profile updated successfully!', 'success');
+            } else {
+                showToast('Update failed. Username may be taken.', 'error');
+            }
+        } catch (err) {
+            // Optimistic update if server offline
+            currentUser = updated;
+            sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            originalData = { name: newName, gmail: newEmail };
+            populateProfile();
+            cancelEdit();
+            showToast('Saved locally (server offline).', 'success');
+        }
+    }
+
+    async function changePassword() {
+        const cur = document.getElementById('f-cur-pw').value;
+        const nw = document.getElementById('f-new-pw').value;
+        const conf = document.getElementById('f-confirm-pw').value;
+        const msg = document.getElementById('pw-message');
+
+        if (!cur || !nw || !conf) {
+            setMsg(msg, 'All fields are required.', false);
+            return;
+        }
+
+        if (cur !== currentUser.password) {
+            setMsg(msg, 'Current password is incorrect.', false);
+            return;
+        }
+
+        if (nw.length < 6) {
+            setMsg(msg, 'New password must be at least 6 characters.', false);
+            return;
+        }
+
+        if (nw !== conf) {
+            setMsg(msg, 'New passwords do not match.', false);
+            return;
+        }
+
+        const updated = { ...currentUser, password: nw };
+
+        try {
+            const res = await fetch(`http://localhost:9090/user/${currentUser.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated)
+            });
+
+            if (res.ok) {
+                currentUser = updated;
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('f-cur-pw').value = '';
+                document.getElementById('f-new-pw').value = '';
+                document.getElementById('f-confirm-pw').value = '';
+                setMsg(msg, '✓ Password updated!', true);
+            } else {
+                setMsg(msg, 'Update failed.', false);
+            }
+        } catch (err) {
+            currentUser = updated;
+            sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            setMsg(msg, '✓ Password updated locally.', true);
+        }
+    }
+
+    function setMsg(el, text, ok) {
+        el.textContent = text;
+        el.style.color = ok ? 'var(--success)' : 'var(--danger)';
+        el.style.background = ok ? 'rgba(74,222,128,0.07)' : 'rgba(248,113,113,0.07)';
+        el.style.border = `1px solid ${ok ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`;
+        el.style.borderRadius = '8px';
+        el.style.padding = text ? '8px 12px' : '0';
+        if (ok) setTimeout(() => { el.textContent = ''; el.style = ''; }, 3500);
+    }
+
+    function openDeleteModal() {
+        document.getElementById('deleteModal').classList.add('open');
+        document.getElementById('delete-confirm').value = '';
+        const deleteBtn = document.getElementById('confirmDeleteBtn');
+        deleteBtn.disabled = true;
+        deleteBtn.style.opacity = '0.5';
+        deleteBtn.style.cursor = 'not-allowed';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('open');
+        document.getElementById('delete-confirm').value = '';
+    }
+
+    async function confirmDelete() {
+        const confirmInput = document.getElementById('delete-confirm').value;
+
+        if (confirmInput !== 'DELETE') {
+            showToast('Please type DELETE to confirm', 'error');
+            return;
+        }
+
+        closeDeleteModal();
+
+        try {
+            await fetch(`http://localhost:9090/user/${currentUser.id}`, { method: 'DELETE' });
+        } catch (err) {
+            console.log('Delete request failed, clearing session anyway');
+        }
+
+        sessionStorage.removeItem('currentUser');
+        showToast('Account deleted. Goodbye!', 'error');
+        setTimeout(() => window.location.href = 'home.html', 1500);
+    }
+
+    function showToast(msg, type) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toast-icon').textContent = type === 'success' ? '✅' : '❌';
+        document.getElementById('toast-text').textContent = msg;
+        toast.className = `toast ${type} show`;
+        setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+
+    // Enable/disable delete button based on DELETE input
+    document.getElementById('delete-confirm').addEventListener('input', (e) => {
+        const deleteBtn = document.getElementById('confirmDeleteBtn');
+        if (e.target.value === 'DELETE') {
+            deleteBtn.disabled = false;
+            deleteBtn.style.opacity = '1';
+            deleteBtn.style.cursor = 'pointer';
+        } else {
+            deleteBtn.disabled = true;
+            deleteBtn.style.opacity = '0.5';
+            deleteBtn.style.cursor = 'not-allowed';
+        }
+    });
+</script>
+</body>
+</html>
