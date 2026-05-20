@@ -1,7 +1,5 @@
 package com.movieplatform.Entity;
 
-//JPA entity class that shows the review table
-//this class map java object to database table
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
