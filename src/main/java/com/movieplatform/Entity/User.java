@@ -34,5 +34,9 @@ public class User {
     @Column(name = "admin")
     private Integer admin;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wishlist_id")
+    private Wishlist wishlist;
+
 
 }

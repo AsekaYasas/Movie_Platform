@@ -31,7 +31,7 @@ public class Movie {
     private String country;
 
     @Column(name = "duration")
-    private String duration;
+    private Instant duration;
 
     @Size(max = 45)
     @Column(name = "shortdescription", length = 45)
